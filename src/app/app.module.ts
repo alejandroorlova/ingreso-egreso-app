@@ -6,6 +6,7 @@ import { FormsModule } from '@angular/forms';
 // Firebase
 import { AngularFireModule } from '@angular/fire';
 import { AngularFireAuth } from '@angular/fire/auth';
+import { AngularFirestoreModule } from '@angular/fire/firestore';
 //Enviroments
 import { environment } from '../environments/environment';
 // Componentes
@@ -37,7 +38,8 @@ import { SidebarComponent } from './shared/sidebar/sidebar.component';
     BrowserModule,
     AppRoutingModule,
     FormsModule,
-    AngularFireModule.initializeApp(environment.firebase)
+    AngularFireModule.initializeApp(environment.firebase),
+    AngularFirestoreModule
   ],
   providers: [
     AngularFireAuth
