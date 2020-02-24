@@ -6,19 +6,28 @@ import { Router } from '@angular/router';
 import Swal from 'sweetalert2/dist/sweetalert2.all.min';
 import { map } from 'rxjs/operators';
 import { User } from './user.model';
+import { Store } from '@ngrx/store';
+import { AppState } from '../app.reducer';
+import { ActivarLoadingAction, DesactivarLoadingAction } from '../shared/ui.actions';
+import { SetUserAction } from './auth.actions';
+import { Subscription } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
 
+  private userSubscription: Subscription = new Subscription();
+
   constructor(
     private afAuth: AngularFireAuth,
     private router: Router,
-    private afDB: AngularFirestore
+    private afDB: AngularFirestore,
+    private store: Store<AppState>
   ) { }
 
   crearUsuario( nombre: string, email:string, password:string ) {
+    this.store.dispatch( new ActivarLoadingAction() );
     this.afAuth
         .createUserWithEmailAndPassword( email, password )
         .then( resp => {
@@ -29,10 +38,12 @@ export class AuthService {
           };
           this.afDB.doc(`${ user.uid }/usuario`).set( user ).then( ()=> {
             this.router.navigate(['/']);
+            this.store.dispatch( new DesactivarLoadingAction() );
           });
         })
         .catch( error => {
           console.error( error );
+          this.store.dispatch( new DesactivarLoadingAction() );
           Swal.fire({
             title: 'Error en el login!',
             text: error.message,
@@ -43,13 +54,16 @@ export class AuthService {
   }
 
   login( email: string , password: string) {
+    this.store.dispatch( new ActivarLoadingAction() );
     this.afAuth.signInWithEmailAndPassword(email, password)
         .then( resp=> {
           console.log(resp);
+          this.store.dispatch( new DesactivarLoadingAction() );
           this.router.navigate(['/']);
         })
         .catch( error => {
           console.error(error);
+          this.store.dispatch( new DesactivarLoadingAction() );
           Swal.fire({
             title: 'Error en el login!',
             text: error.message,
@@ -66,7 +80,15 @@ export class AuthService {
 
   initAuthListener() {
     this.afAuth.authState.subscribe( fbUser => {
-      console.log('FBUSER', fbUser);
+      if ( fbUser ) {
+        this.userSubscription = this.afDB.doc(`${ fbUser.uid }/usuario`).valueChanges().subscribe( (usuarioObj: any) => {
+          const newUser = new User( usuarioObj );
+          console.log('NEW USER', newUser);
+          this.store.dispatch(new SetUserAction(newUser));
+        } );
+      } else {
+        this.userSubscription.unsubscribe();
+      }
     });
   }
 
