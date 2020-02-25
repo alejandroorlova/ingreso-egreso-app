@@ -57,7 +57,7 @@ export class AuthService {
   login( email: string , password: string) {
     this.store.dispatch( new ActivarLoadingAction() );
     this.afAuth.signInWithEmailAndPassword(email, password)
-        .then( resp=> {
+        .then( resp => {
           console.log(resp);
           this.store.dispatch( new DesactivarLoadingAction() );
           this.router.navigate(['/']);
