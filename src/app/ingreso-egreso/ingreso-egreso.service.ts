@@ -5,7 +5,7 @@ import { AuthService } from '../auth/auth.service';
 import { Store } from '@ngrx/store';
 import { AppState } from '../app.reducer';
 import { filter, map } from 'rxjs/operators';
-import { SetItemsAction } from './ingreso-egreso.actions';
+import { SetItemsAction, UnsetItemsAction } from './ingreso-egreso.actions';
 import { Subscription } from 'rxjs';
 
 @Injectable({
@@ -54,6 +54,7 @@ export class IngresoEgresoService  {
   cancelarSubcriptions() {
     this.ingresoEgresoListenerSubscription.unsubscribe();
     this.ingresoEgresoItemsSubscription.unsubscribe();
+    this.store.dispatch(new UnsetItemsAction());
   }
 
   crearIngresoEgreso( ingresoEgreso: IngresoEgreso ) {
